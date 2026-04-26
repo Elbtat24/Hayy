@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل موسيقى مخصص</title>
+    <title>مشغل موسيقى متطور</title>
     <style>
         body {
             background-color: #121212;
@@ -20,34 +20,62 @@
             padding: 20px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            width: 300px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            width: 320px;
+        }
+        /* تصميم صورة الأغنية */
+        .cover-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .track-title {
             margin-bottom: 20px;
             font-size: 18px;
             font-weight: bold;
         }
+        /* شريط الوقت */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #b3b3b3;
+        }
+        #progress-bar {
+            flex-grow: 1;
+            margin: 0 10px;
+            cursor: pointer;
+            accent-color: #1db954; /* لون الشريط */
+        }
+        /* أزرار التحكم */
         .controls button {
-            background-color: #1db954; /* لون قريب من سبوتيفاي */
+            background-color: transparent;
             color: white;
-            border: none;
-            padding: 10px 20px;
+            border: 1px solid #1db954;
+            padding: 10px 15px;
             margin: 5px;
-            border-radius: 20px;
+            border-radius: 50px;
             font-size: 16px;
             cursor: pointer;
             transition: 0.3s;
         }
         .controls button:hover {
-            background-color: #1ed760;
-            transform: scale(1.05);
+            background-color: #1db954;
         }
         .controls button:disabled {
-            background-color: #555;
+            border-color: #555;
+            color: #555;
             cursor: not-allowed;
         }
-        /* إخفاء مشغل يوتيوب الأصلي */
+        #play-btn, #pause-btn {
+            background-color: #1db954;
+            color: black;
+            font-weight: bold;
+        }
+        /* إخفاء يوتيوب الأصلي */
         #youtube-player {
             display: none;
         }
@@ -56,35 +84,42 @@
 <body>
 
     <div class="player-card">
-        <div class="track-title" id="track-name">جاري تحميل الأغنية...</div>
+        <img src="https://img.youtube.com/vi/iq05BWnXHoI/hqdefault.jpg" class="cover-image" alt="صورة الأغنية">
+        
+        <div class="track-title" id="track-name">هاى معاكو حمو - حمو المرشدى</div>
+        
+        <div class="progress-container">
+            <span id="current-time">0:00</span>
+            <input type="range" id="progress-bar" value="0" min="0" max="100" disabled>
+            <span id="duration">0:00</span>
+        </div>
         
         <div class="controls">
+            <button id="backward-btn" disabled>⏪ 10ث</button>
             <button id="play-btn" disabled>▶ تشغيل</button>
-            <button id="pause-btn" disabled>⏸ إيقاف</button>
+            <button id="pause-btn" disabled>⏸</button>
+            <button id="forward-btn" disabled>⏩ 10ث</button>
         </div>
     </div>
 
     <div id="youtube-player"></div>
 
     <script>
-        // 1. تحميل الـ API الخاص بيوتيوب بشكل غير متزامن (Asynchronous)
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         var player;
+        var timeUpdater; // عشان نحدث شريط الوقت كل ثانية
+        var isDragging = false; // عشان نعرف لو المستخدم بيسحب الشريط
 
-        // 2. الدالة دي بتشتغل تلقائياً أول ما الـ API يحمل
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
                 height: '0', 
                 width: '0', 
-                videoId: 'iq05BWnXHoI', // ده الـ ID بتاع أغنية حمو المرشدي
-                playerVars: {
-                    'autoplay': 0, // عدم التشغيل التلقائي
-                    'controls': 0, // إخفاء عناصر التحكم
-                },
+                videoId: 'iq05BWnXHoI',
+                playerVars: { 'autoplay': 0, 'controls': 0 },
                 events: {
                     'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange
@@ -92,32 +127,76 @@
             });
         }
 
-        // 3. الدالة دي بتشتغل لما المشغل يكون جاهز
         function onPlayerReady(event) {
-            // تفعيل الزراير
-            document.getElementById('play-btn').disabled = false;
-            document.getElementById('pause-btn').disabled = false;
+            // تفعيل كل الأزرار وشريط التقدم
+            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+            document.getElementById('progress-bar').disabled = false;
 
-            // جلب بيانات الفيديو (ممكن تجيب العنوان الفعلي لو معاك Data API، بس هنا هنكتبه كمثال)
-            document.getElementById('track-name').innerText = "هاى معاكو حمو - حمو المرشدى";
-
-            // ربط زراير الـ HTML بأوامر المشغل
+            // أحداث أزرار التشغيل والإيقاف
             document.getElementById('play-btn').addEventListener('click', function() {
                 player.playVideo();
             });
-
             document.getElementById('pause-btn').addEventListener('click', function() {
                 player.pauseVideo();
             });
+
+            // أحداث التقديم والتأخير (10 ثواني)
+            document.getElementById('forward-btn').addEventListener('click', function() {
+                var currentTime = player.getCurrentTime();
+                player.seekTo(currentTime + 10, true);
+            });
+            document.getElementById('backward-btn').addEventListener('click', function() {
+                var currentTime = player.getCurrentTime();
+                player.seekTo(currentTime - 10, true);
+            });
+
+            // التعامل مع سحب شريط التقدم
+            var progressBar = document.getElementById('progress-bar');
+            
+            // لما نضغط على الشريط عشان نسحب
+            progressBar.addEventListener('mousedown', function() { isDragging = true; });
+            progressBar.addEventListener('touchstart', function() { isDragging = true; }); // للموبايل
+            
+            // لما نسيب الشريط
+            progressBar.addEventListener('change', function() {
+                var duration = player.getDuration();
+                var seekToTime = (this.value / 100) * duration;
+                player.seekTo(seekToTime, true);
+                isDragging = false;
+            });
+            progressBar.addEventListener('touchend', function() { isDragging = false; }); // للموبايل
         }
 
-        // 4. (اختياري) مراقبة حالة المشغل (شغال، واقف، خلص)
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
-                console.log("الأغنية شغالة دلوقتي...");
-            } else if (event.data == YT.PlayerState.PAUSED) {
-                console.log("الأغنية وقفت.");
+                // أول ما الأغنية تشتغل، نظهر وقتها الإجمالي ونبدأ نحدث العداد
+                document.getElementById('duration').innerText = formatTime(player.getDuration());
+                timeUpdater = setInterval(updateProgressBar, 500); // تحديث كل نص ثانية
+            } else {
+                // لو وقفت الأغنية نوقف التحديث
+                clearInterval(timeUpdater);
             }
+        }
+
+        // دالة تحديث شريط التقدم والوقت الحالي
+        function updateProgressBar() {
+            if (!isDragging && player && player.getDuration() > 0) {
+                var currentTime = player.getCurrentTime();
+                var duration = player.getDuration();
+                
+                // تحديث مكان الشريط
+                document.getElementById('progress-bar').value = (currentTime / duration) * 100;
+                // تحديث النص بتاع الوقت
+                document.getElementById('current-time').innerText = formatTime(currentTime);
+            }
+        }
+
+        // دالة لتحويل الثواني لشكل دقايق وثواني (مثال: 02:30)
+        function formatTime(timeInSeconds) {
+            var minutes = Math.floor(timeInSeconds / 60);
+            var seconds = Math.floor(timeInSeconds % 60);
+            if (seconds < 10) { seconds = "0" + seconds; }
+            return minutes + ":" + seconds;
         }
     </script>
 </body>

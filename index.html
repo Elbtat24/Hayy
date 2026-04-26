@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل موسيقى - قائمة تشغيل</title>
+    <title>منصة الموسيقى - القائمة المحدثة</title>
     <style>
         body {
             background-color: #121212;
@@ -32,9 +32,12 @@
         }
         .track-title {
             margin-bottom: 20px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            height: 25px; /* عشان نحافظ على الارتفاع لو الاسم اتغير */
+            height: 40px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .progress-container {
             display: flex;
@@ -81,7 +84,6 @@
             color: #555;
             cursor: not-allowed;
         }
-        /* تمييز زر التشغيل والإيقاف */
         #play-btn, #pause-btn {
             background-color: #1db954;
             color: black;
@@ -98,7 +100,6 @@
 
     <div class="player-card">
         <img id="cover-img" src="" class="cover-image" alt="صورة الأغنية">
-        
         <div class="track-title" id="track-name">جاري التحميل...</div>
         
         <div class="progress-container">
@@ -110,10 +111,8 @@
         <div class="controls">
             <button id="prev-track-btn" disabled title="السابق">⏮</button>
             <button id="backward-btn" disabled title="رجوع 10 ثواني">⏪</button>
-            
             <button id="play-btn" disabled title="تشغيل">▶</button>
             <button id="pause-btn" disabled title="إيقاف" style="display:none;">⏸</button>
-            
             <button id="forward-btn" disabled title="تقديم 10 ثواني">⏩</button>
             <button id="next-track-btn" disabled title="التالي">⏭</button>
         </div>
@@ -131,18 +130,79 @@
         var timeUpdater; 
         var isDragging = false; 
 
-        // === قائمة الأغاني (تقدر تضيف أي عدد من الأغاني هنا) ===
+        // === قائمة الأغاني بالـ IDs الجديدة اللي طلبتها مع أول أغنيتين ===
         var playlist = [
-            { id: 'F0qQguKVSQY', title: 'الأغنية الأولى' }, // الأغنية الجديدة اللي طلبتها الأول
-            { id: 'iq05BWnXHoI', title: 'هاى معاكو حمو - حمو المرشدى' } // الأغنية التانية
+            { id: 'F0qQguKVSQY', title: 'الأغنية الأولى' },
+            { id: 'iq05BWnXHoI', title: 'هاى معاكو حمو - حمو المرشدى' },
+            { id: 'hLQl3WQQoQ0', title: 'أغنية 3' },
+            { id: 'fJ9rUzIMcZQ', title: 'أغنية 4' },
+            { id: 'RgKAFK5djSk', title: 'أغنية 5' },
+            { id: 'CevxZvSJLk8', title: 'أغنية 6' },
+            { id: 'YQHsXMglC9A', title: 'أغنية 7' },
+            { id: 'UceaB4D0jpo', title: 'أغنية 8' },
+            { id: 'kJQP7kiw5Fk', title: 'أغنية 9' },
+            { id: '3tmd-ClpJxA', title: 'أغنية 10' },
+            { id: 'ktvTqknDobU', title: 'أغنية 11' },
+            { id: '09R8_2nJtjg', title: 'أغنية 12' },
+            { id: 'y6Sxv-sUYtM', title: 'أغنية 13' },
+            { id: '2-lz1qgwf80', title: 'أغنية 14' },
+            { id: 'H7HmzwI67ec', title: 'أغنية 15' },
+            { id: '3r7k9l5sG3k', title: 'أغنية 16' },
+            { id: '8UVNT4wvIGY', title: 'أغنية 17' },
+            { id: 'L_jWHffIx5E', title: 'أغنية 18' },
+            { id: 'd-diB65scQU', title: 'أغنية 19' },
+            { id: 'u9Mv98Gr5pY', title: 'أغنية 20' },
+            { id: 'XqZsoesa55w', title: 'أغنية 21' },
+            { id: 'OPf0YbXqDm0', title: 'أغنية 22' },
+            { id: 'wJnBTPUQS5A', title: 'أغنية 23' },
+            { id: 'k2qgadSvNyU', title: 'أغنية 24' },
+            { id: 'lp-EO5I60KA', title: 'أغنية 25' },
+            { id: 'nfWlot6h_JM', title: 'أغنية 26' },
+            { id: 'YykjpeuMNEk', title: 'أغنية 27' },
+            { id: 'JGwWNGJdvx8', title: 'أغنية 28' },
+            { id: '60ItHLz5WEA', title: 'أغنية 29' },
+            { id: 'SlPhMPnQ58k', title: 'أغنية 30' },
+            { id: 'fRh_vgS2dFE', title: 'أغنية 31' },
+            { id: 'uelHwf8o7_U', title: 'أغنية 32' },
+            { id: 'nfs8NYg7yQM', title: 'أغنية 33' },
+            { id: 'ZbZSe6N_BXs', title: 'أغنية 34' },
+            { id: '09R8_2nJtjg', title: 'أغنية 35' },
+            { id: 'pRpeEdMmmQ0', title: 'أغنية 36' },
+            { id: 'e-ORhEE9VVg', title: 'أغنية 37' },
+            { id: 'kOkQ4T5WO9E', title: 'أغنية 38' },
+            { id: 'hT_nvWreIhg', title: 'أغنية 39' },
+            { id: '3JWTaaS7LdU', title: 'أغنية 40' },
+            { id: 'QK8mJJJvaes', title: 'أغنية 41' },
+            { id: 'LsoLEjrDogU', title: 'أغنية 42' },
+            { id: '5NV6Rdv1a3I', title: 'أغنية 43' },
+            { id: 'J_ub7Etch2U', title: 'أغنية 44' },
+            { id: '2Vv-BfVoq4g', title: 'أغنية 45' },
+            { id: 'ktvTqknDobU', title: 'أغنية 46' },
+            { id: 'RgKAFK5djSk', title: 'أغنية 47' },
+            { id: 'CevxZvSJLk8', title: 'أغنية 48' },
+            { id: 'YQHsXMglC9A', title: 'أغنية 49' },
+            { id: 'UceaB4D0jpo', title: 'أغنية 50' },
+            { id: 'kJQP7kiw5Fk', title: 'أغنية 51' },
+            { id: '3tmd-ClpJxA', title: 'أغنية 52' },
+            { id: '8UVNT4wvIGY', title: 'أغنية 53' },
+            { id: 'H7HmzwI67ec', title: 'أغنية 54' },
+            { id: '3r7k9l5sG3k', title: 'أغنية 55' },
+            { id: 'y6Sxv-sUYtM', title: 'أغنية 56' },
+            { id: '2-lz1qgwf80', title: 'أغنية 57' },
+            { id: 'd-diB65scQU', title: 'أغنية 58' },
+            { id: 'u9Mv98Gr5pY', title: 'أغنية 59' },
+            { id: 'XqZsoesa55w', title: 'أغنية 60' },
+            { id: 'OPf0YbXqDm0', title: 'أغنية 61' },
+            { id: 'wJnBTPUQS5A', title: 'أغنية 62' }
         ];
-        var currentTrackIndex = 0; // هنبدأ بالأغنية الأولى في القائمة (رقم 0)
+        
+        var currentTrackIndex = 0; 
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
                 height: '0', 
                 width: '0', 
-                videoId: playlist[currentTrackIndex].id, // تحميل أول أغنية
+                videoId: playlist[currentTrackIndex].id,
                 playerVars: { 'autoplay': 0, 'controls': 0 },
                 events: {
                     'onReady': onPlayerReady,
@@ -151,25 +211,21 @@
             });
         }
 
-        // دالة لتحميل وعرض الأغنية الجديدة
         function loadTrack(index) {
-            // لو وصلنا للآخر، نرجع للأول، ولو رجعنا قبل الأول، نروح للآخر
             if (index >= playlist.length) index = 0;
             if (index < 0) index = playlist.length - 1;
             
             currentTrackIndex = index;
             var track = playlist[currentTrackIndex];
 
-            // تحديث الواجهة (الاسم والصورة)
             document.getElementById('track-name').innerText = track.title;
+            // سحب الصورة المصغرة بأعلى جودة
             document.getElementById('cover-img').src = "https://img.youtube.com/vi/" + track.id + "/hqdefault.jpg";
             
-            // تصفير العدادات
             document.getElementById('progress-bar').value = 0;
             document.getElementById('current-time').innerText = "0:00";
             document.getElementById('duration').innerText = "0:00";
 
-            // أمر اليوتيوب بتشغيل الفيديو الجديد
             if (player && typeof player.loadVideoById === "function") {
                 player.loadVideoById(track.id);
             }
@@ -179,11 +235,9 @@
             document.querySelectorAll('button').forEach(btn => btn.disabled = false);
             document.getElementById('progress-bar').disabled = false;
 
-            // عرض بيانات أول أغنية في الواجهة
             loadTrack(currentTrackIndex);
-            player.pauseVideo(); // التأكد إنها مش هتشتغل تلقائي في البداية
+            player.pauseVideo(); 
 
-            // أحداث التشغيل والإيقاف
             document.getElementById('play-btn').addEventListener('click', function() {
                 player.playVideo();
                 this.style.display = 'none';
@@ -195,7 +249,6 @@
                 document.getElementById('play-btn').style.display = 'block';
             });
 
-            // أحداث التنقل بين الأغاني (التالي والسابق)
             document.getElementById('next-track-btn').addEventListener('click', function() {
                 loadTrack(currentTrackIndex + 1);
             });
@@ -203,7 +256,6 @@
                 loadTrack(currentTrackIndex - 1);
             });
 
-            // أحداث التقديم والتأخير 10 ثواني
             document.getElementById('forward-btn').addEventListener('click', function() {
                 player.seekTo(player.getCurrentTime() + 10, true);
             });
@@ -211,7 +263,6 @@
                 player.seekTo(player.getCurrentTime() - 10, true);
             });
 
-            // التعامل مع شريط التقدم
             var progressBar = document.getElementById('progress-bar');
             progressBar.addEventListener('mousedown', () => isDragging = true);
             progressBar.addEventListener('touchstart', () => isDragging = true);
@@ -229,7 +280,6 @@
                 document.getElementById('duration').innerText = formatTime(player.getDuration());
                 timeUpdater = setInterval(updateProgressBar, 500);
                 
-                // التأكد إن زر التوقف هو اللي ظاهر
                 document.getElementById('play-btn').style.display = 'none';
                 document.getElementById('pause-btn').style.display = 'block';
             } else {
@@ -240,7 +290,6 @@
                 }
             }
 
-            // تشغيل الأغنية اللي بعدها تلقائياً لما الحالية تخلص
             if (event.data == YT.PlayerState.ENDED) {
                 loadTrack(currentTrackIndex + 1);
             }

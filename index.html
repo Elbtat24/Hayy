@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل موسيقى متطور</title>
+    <title>مشغل موسيقى - قائمة تشغيل</title>
     <style>
         body {
             background-color: #121212;
@@ -21,21 +21,21 @@
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-            width: 320px;
+            width: 350px;
         }
-        /* تصميم صورة الأغنية */
         .cover-image {
             width: 100%;
             border-radius: 10px;
             margin-bottom: 15px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: 0.3s;
         }
         .track-title {
             margin-bottom: 20px;
             font-size: 18px;
             font-weight: bold;
+            height: 25px; /* عشان نحافظ على الارتفاع لو الاسم اتغير */
         }
-        /* شريط الوقت */
         .progress-container {
             display: flex;
             align-items: center;
@@ -48,34 +48,47 @@
             flex-grow: 1;
             margin: 0 10px;
             cursor: pointer;
-            accent-color: #1db954; /* لون الشريط */
+            accent-color: #1db954;
         }
-        /* أزرار التحكم */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
         .controls button {
             background-color: transparent;
             color: white;
             border: 1px solid #1db954;
-            padding: 10px 15px;
-            margin: 5px;
-            border-radius: 50px;
+            padding: 10px;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
             font-size: 16px;
             cursor: pointer;
             transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .controls button:hover {
             background-color: #1db954;
+            color: black;
         }
         .controls button:disabled {
             border-color: #555;
             color: #555;
             cursor: not-allowed;
         }
+        /* تمييز زر التشغيل والإيقاف */
         #play-btn, #pause-btn {
             background-color: #1db954;
             color: black;
-            font-weight: bold;
+            width: 55px;
+            height: 55px;
+            font-size: 20px;
         }
-        /* إخفاء يوتيوب الأصلي */
         #youtube-player {
             display: none;
         }
@@ -84,9 +97,9 @@
 <body>
 
     <div class="player-card">
-        <img src="https://img.youtube.com/vi/iq05BWnXHoI/hqdefault.jpg" class="cover-image" alt="صورة الأغنية">
+        <img id="cover-img" src="" class="cover-image" alt="صورة الأغنية">
         
-        <div class="track-title" id="track-name">هاى معاكو حمو - حمو المرشدى</div>
+        <div class="track-title" id="track-name">جاري التحميل...</div>
         
         <div class="progress-container">
             <span id="current-time">0:00</span>
@@ -95,10 +108,14 @@
         </div>
         
         <div class="controls">
-            <button id="backward-btn" disabled>⏪ 10ث</button>
-            <button id="play-btn" disabled>▶ تشغيل</button>
-            <button id="pause-btn" disabled>⏸</button>
-            <button id="forward-btn" disabled>⏩ 10ث</button>
+            <button id="prev-track-btn" disabled title="السابق">⏮</button>
+            <button id="backward-btn" disabled title="رجوع 10 ثواني">⏪</button>
+            
+            <button id="play-btn" disabled title="تشغيل">▶</button>
+            <button id="pause-btn" disabled title="إيقاف" style="display:none;">⏸</button>
+            
+            <button id="forward-btn" disabled title="تقديم 10 ثواني">⏩</button>
+            <button id="next-track-btn" disabled title="التالي">⏭</button>
         </div>
     </div>
 
@@ -111,14 +128,21 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         var player;
-        var timeUpdater; // عشان نحدث شريط الوقت كل ثانية
-        var isDragging = false; // عشان نعرف لو المستخدم بيسحب الشريط
+        var timeUpdater; 
+        var isDragging = false; 
+
+        // === قائمة الأغاني (تقدر تضيف أي عدد من الأغاني هنا) ===
+        var playlist = [
+            { id: 'F0qQguKVSQY', title: 'الأغنية الأولى' }, // الأغنية الجديدة اللي طلبتها الأول
+            { id: 'iq05BWnXHoI', title: 'هاى معاكو حمو - حمو المرشدى' } // الأغنية التانية
+        ];
+        var currentTrackIndex = 0; // هنبدأ بالأغنية الأولى في القائمة (رقم 0)
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
                 height: '0', 
                 width: '0', 
-                videoId: 'iq05BWnXHoI',
+                videoId: playlist[currentTrackIndex].id, // تحميل أول أغنية
                 playerVars: { 'autoplay': 0, 'controls': 0 },
                 events: {
                     'onReady': onPlayerReady,
@@ -127,75 +151,114 @@
             });
         }
 
+        // دالة لتحميل وعرض الأغنية الجديدة
+        function loadTrack(index) {
+            // لو وصلنا للآخر، نرجع للأول، ولو رجعنا قبل الأول، نروح للآخر
+            if (index >= playlist.length) index = 0;
+            if (index < 0) index = playlist.length - 1;
+            
+            currentTrackIndex = index;
+            var track = playlist[currentTrackIndex];
+
+            // تحديث الواجهة (الاسم والصورة)
+            document.getElementById('track-name').innerText = track.title;
+            document.getElementById('cover-img').src = "https://img.youtube.com/vi/" + track.id + "/hqdefault.jpg";
+            
+            // تصفير العدادات
+            document.getElementById('progress-bar').value = 0;
+            document.getElementById('current-time').innerText = "0:00";
+            document.getElementById('duration').innerText = "0:00";
+
+            // أمر اليوتيوب بتشغيل الفيديو الجديد
+            if (player && typeof player.loadVideoById === "function") {
+                player.loadVideoById(track.id);
+            }
+        }
+
         function onPlayerReady(event) {
-            // تفعيل كل الأزرار وشريط التقدم
             document.querySelectorAll('button').forEach(btn => btn.disabled = false);
             document.getElementById('progress-bar').disabled = false;
 
-            // أحداث أزرار التشغيل والإيقاف
+            // عرض بيانات أول أغنية في الواجهة
+            loadTrack(currentTrackIndex);
+            player.pauseVideo(); // التأكد إنها مش هتشتغل تلقائي في البداية
+
+            // أحداث التشغيل والإيقاف
             document.getElementById('play-btn').addEventListener('click', function() {
                 player.playVideo();
+                this.style.display = 'none';
+                document.getElementById('pause-btn').style.display = 'block';
             });
             document.getElementById('pause-btn').addEventListener('click', function() {
                 player.pauseVideo();
+                this.style.display = 'none';
+                document.getElementById('play-btn').style.display = 'block';
             });
 
-            // أحداث التقديم والتأخير (10 ثواني)
+            // أحداث التنقل بين الأغاني (التالي والسابق)
+            document.getElementById('next-track-btn').addEventListener('click', function() {
+                loadTrack(currentTrackIndex + 1);
+            });
+            document.getElementById('prev-track-btn').addEventListener('click', function() {
+                loadTrack(currentTrackIndex - 1);
+            });
+
+            // أحداث التقديم والتأخير 10 ثواني
             document.getElementById('forward-btn').addEventListener('click', function() {
-                var currentTime = player.getCurrentTime();
-                player.seekTo(currentTime + 10, true);
+                player.seekTo(player.getCurrentTime() + 10, true);
             });
             document.getElementById('backward-btn').addEventListener('click', function() {
-                var currentTime = player.getCurrentTime();
-                player.seekTo(currentTime - 10, true);
+                player.seekTo(player.getCurrentTime() - 10, true);
             });
 
-            // التعامل مع سحب شريط التقدم
+            // التعامل مع شريط التقدم
             var progressBar = document.getElementById('progress-bar');
+            progressBar.addEventListener('mousedown', () => isDragging = true);
+            progressBar.addEventListener('touchstart', () => isDragging = true);
             
-            // لما نضغط على الشريط عشان نسحب
-            progressBar.addEventListener('mousedown', function() { isDragging = true; });
-            progressBar.addEventListener('touchstart', function() { isDragging = true; }); // للموبايل
-            
-            // لما نسيب الشريط
             progressBar.addEventListener('change', function() {
                 var duration = player.getDuration();
-                var seekToTime = (this.value / 100) * duration;
-                player.seekTo(seekToTime, true);
+                player.seekTo((this.value / 100) * duration, true);
                 isDragging = false;
             });
-            progressBar.addEventListener('touchend', function() { isDragging = false; }); // للموبايل
+            progressBar.addEventListener('touchend', () => isDragging = false);
         }
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
-                // أول ما الأغنية تشتغل، نظهر وقتها الإجمالي ونبدأ نحدث العداد
                 document.getElementById('duration').innerText = formatTime(player.getDuration());
-                timeUpdater = setInterval(updateProgressBar, 500); // تحديث كل نص ثانية
+                timeUpdater = setInterval(updateProgressBar, 500);
+                
+                // التأكد إن زر التوقف هو اللي ظاهر
+                document.getElementById('play-btn').style.display = 'none';
+                document.getElementById('pause-btn').style.display = 'block';
             } else {
-                // لو وقفت الأغنية نوقف التحديث
                 clearInterval(timeUpdater);
+                if (event.data == YT.PlayerState.PAUSED) {
+                    document.getElementById('pause-btn').style.display = 'none';
+                    document.getElementById('play-btn').style.display = 'block';
+                }
+            }
+
+            // تشغيل الأغنية اللي بعدها تلقائياً لما الحالية تخلص
+            if (event.data == YT.PlayerState.ENDED) {
+                loadTrack(currentTrackIndex + 1);
             }
         }
 
-        // دالة تحديث شريط التقدم والوقت الحالي
         function updateProgressBar() {
             if (!isDragging && player && player.getDuration() > 0) {
                 var currentTime = player.getCurrentTime();
                 var duration = player.getDuration();
-                
-                // تحديث مكان الشريط
                 document.getElementById('progress-bar').value = (currentTime / duration) * 100;
-                // تحديث النص بتاع الوقت
                 document.getElementById('current-time').innerText = formatTime(currentTime);
             }
         }
 
-        // دالة لتحويل الثواني لشكل دقايق وثواني (مثال: 02:30)
         function formatTime(timeInSeconds) {
             var minutes = Math.floor(timeInSeconds / 60);
             var seconds = Math.floor(timeInSeconds % 60);
-            if (seconds < 10) { seconds = "0" + seconds; }
+            if (seconds < 10) seconds = "0" + seconds;
             return minutes + ":" + seconds;
         }
     </script>

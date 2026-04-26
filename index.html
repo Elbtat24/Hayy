@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الموسيقى</title>
+    <title>مشغل موسيقى - قائمة تشغيل</title>
     <style>
         body {
             background-color: #121212;
@@ -19,57 +19,10 @@
             background-color: #1e1e1e;
             padding: 20px;
             border-radius: 15px;
+            text-align: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.6);
             width: 350px;
-            position: relative; /* مهم عشان قائمة البحث تظهر فوق العناصر */
         }
-        
-        /* تصميم مربع البحث */
-        .search-container {
-            margin-bottom: 15px;
-            position: relative;
-        }
-        #search-input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 20px;
-            border: none;
-            background-color: #2a2a2a;
-            color: white;
-            font-size: 14px;
-            box-sizing: border-box;
-            outline: none;
-        }
-        #search-input::placeholder {
-            color: #b3b3b3;
-        }
-        /* تصميم قائمة نتائج البحث */
-        #search-results {
-            position: absolute;
-            top: 40px;
-            width: 100%;
-            background-color: #2a2a2a;
-            border-radius: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-            z-index: 10; /* عشان تغطي الصورة */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        .result-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #333;
-            font-size: 14px;
-        }
-        .result-item:hover {
-            background-color: #1db954;
-            color: black;
-            font-weight: bold;
-        }
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
         .cover-image {
             width: 100%;
             border-radius: 10px;
@@ -79,13 +32,9 @@
         }
         .track-title {
             margin-bottom: 20px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            height: 40px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            height: 25px; /* عشان نحافظ على الارتفاع لو الاسم اتغير */
         }
         .progress-container {
             display: flex;
@@ -132,6 +81,7 @@
             color: #555;
             cursor: not-allowed;
         }
+        /* تمييز زر التشغيل والإيقاف */
         #play-btn, #pause-btn {
             background-color: #1db954;
             color: black;
@@ -142,26 +92,13 @@
         #youtube-player {
             display: none;
         }
-        
-        /* تخصيص الـ Scrollbar لقائمة البحث */
-        #search-results::-webkit-scrollbar {
-            width: 5px;
-        }
-        #search-results::-webkit-scrollbar-thumb {
-            background: #1db954; 
-            border-radius: 10px;
-        }
     </style>
 </head>
 <body>
 
     <div class="player-card">
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="ابحث عن أغنية (مثال: Tamally Maak)...">
-            <div id="search-results"></div>
-        </div>
-
         <img id="cover-img" src="" class="cover-image" alt="صورة الأغنية">
+        
         <div class="track-title" id="track-name">جاري التحميل...</div>
         
         <div class="progress-container">
@@ -173,8 +110,10 @@
         <div class="controls">
             <button id="prev-track-btn" disabled title="السابق">⏮</button>
             <button id="backward-btn" disabled title="رجوع 10 ثواني">⏪</button>
+            
             <button id="play-btn" disabled title="تشغيل">▶</button>
             <button id="pause-btn" disabled title="إيقاف" style="display:none;">⏸</button>
+            
             <button id="forward-btn" disabled title="تقديم 10 ثواني">⏩</button>
             <button id="next-track-btn" disabled title="التالي">⏭</button>
         </div>
@@ -192,98 +131,18 @@
         var timeUpdater; 
         var isDragging = false; 
 
-        // قائمة الأغاني المطلوبة
+        // === قائمة الأغاني (تقدر تضيف أي عدد من الأغاني هنا) ===
         var playlist = [
-            { id: 'hTWKbfoikeg', title: 'Tamally Maak' },
-            { id: 'fJ9rUzIMcZQ', title: 'Nour El Ein' },
-            { id: '3tmd-ClpJxA', title: 'El Alem Allah' },
-            { id: 'kJQP7kiw5Fk', title: 'Lealy Nahary' },
-            { id: 'RgKAFK5djSk', title: 'We Malo' },
-            { id: 'UceaB4D0jpo', title: 'Ana Ayesh' },
-            { id: 'YQHsXMglC9A', title: 'Amarain' },
-            { id: '2Vv-BfVoq4g', title: 'Wayah' },
-            { id: '09R8_2nJtjg', title: 'El Lilady' },
-            { id: 'lp-EO5I60KA', title: 'Bahebak Ana' },
-            { id: 'SlPhMPnQ58k', title: 'Kont Aol Eh' },
-            { id: 'nfWlot6h_JM', title: 'Ayesh Ma\'ak' },
-            { id: 'e-ORhEE9VVg', title: 'Kol Hayaty' },
-            { id: 'hLQl3WQQoQ0', title: 'Gamalo' },
-            { id: 'uelHwf8o7_U', title: 'Ana Ghair' },
-            { id: 'pRpeEdMmmQ0', title: 'Shokran' },
-            { id: 'YykjpeuMNEk', title: 'Ana Wala La' },
-            { id: 'k2qgadSvNyU', title: 'Ya Ana Ya La' },
-            { id: '3JWTaaS7LdU', title: 'Helwa El Bedayat' },
-            { id: 'QK8mJJJvaes', title: 'Makanak' },
-            { id: 'LsoLEjrDogU', title: 'Da Law Et7asab' },
-            { id: '8UVNT4wvIGY', title: 'Ahla W Ahla' },
-            { id: 'H7HmzwI67ec', title: 'El Qahira' },
-            { id: '3r7k9l5sG3k', title: 'Bahebak Aktar' },
-            { id: 'y6Sxv-sUYtM', title: 'Rohy Maatak' },
-            { id: '2-lz1qgwf80', title: 'Wala Ala Balo' },
-            { id: 'd-diB65scQU', title: 'Ana Mesh Anany' },
-            { id: 'u9Mv98Gr5pY', title: 'Qusad Einy' },
-            { id: 'XqZsoesa55w', title: 'Aadi' },
-            { id: 'OPf0YbXqDm0', title: 'Khalik Maaya' },
-            { id: 'wJnBTPUQS5A', title: 'El Leila' },
-            { id: 'JGwWNGJdvx8', title: 'El Hob Koloh' },
-            { id: '60ItHLz5WEA', title: 'Ayam We Ben3eesha' },
-            { id: 'fRh_vgS2dFE', title: 'Gana El Hawa' },
-            { id: 'nfs8NYg7yQM', title: 'Law Habs' },
-            { id: 'ZbZSe6N_BXs', title: 'El Hob' },
-            { id: 'kOkQ4T5WO9E', title: 'Ana 3ayez' },
-            { id: 'hT_nvWreIhg', title: 'Tameny' },
-            { id: '5NV6Rdv1a3I', title: 'Habiby Ya Nour El Ein' },
-            { id: 'J_ub7Etch2U', title: 'Ya Habiby' },
-            { id: 'CevxZvSJLk8', title: 'Bahebak' },
-            { id: '7wtfhZwyrcc', title: 'Tamally Maak Remix' },
-            { id: 'dvgZkm1xWPE', title: 'Nour El Ein Remix' },
-            { id: 'OPf0YbXqDm0', title: 'Khalik Maaya (Live)' },
-            { id: 'uelHwf8o7_U', title: 'Ana Ghair (Live)' },
-            { id: 'YykjpeuMNEk', title: 'Ana Wala La (Live)' },
-            { id: 'k2qgadSvNyU', title: 'Ya Ana Ya La (Live)' },
-            { id: 'QK8mJJJvaes', title: 'Makanak (Live)' },
-            { id: '3JWTaaS7LdU', title: 'Helwa El Bedayat (Live)' },
-            { id: 'hTWKbfoikeg', title: 'Tamally Maak (Alt Version)' },
-            { id: 'fJ9rUzIMcZQ', title: 'Nour El Ein (Alt Version)' },
-            { id: 'eY52Zsg-KVI', title: 'Law Ader' },
-            { id: 'tAGnKpE4NCI', title: 'Ana Bahebak' },
-            { id: 'ktvTqknDobU', title: 'Tamally Maak Live Stage' },
-            { id: '3fumBcKC6RE', title: 'Ayesh Maak Acoustic' },
-            { id: '60ItHLz5WEA', title: 'Ayam We Ben3eesha Remix' },
-            { id: 'RgKAFK5djSk', title: 'We Malo Remix' },
-            { id: 'kOkQ4T5WO9E', title: 'Ana 3ayez Acoustic' },
-            { id: 'ZbZSe6N_BXs', title: 'El Hob Remix' },
-            { id: 'hT_nvWreIhg', title: 'Tameny Live' },
-            { id: 'JGwWNGJdvx8', title: 'El Hob Koloh Live' },
-            { id: 'pRpeEdMmmQ0', title: 'Shokran Acoustic' },
-            { id: 'XqZsoesa55w', title: 'Aadi Live' },
-            { id: 'd-diB65scQU', title: 'Ana Mesh Anany Live' },
-            { id: '2Vv-BfVoq4g', title: 'Wayah Live' },
-            { id: '09R8_2nJtjg', title: 'El Lilady Live' },
-            { id: 'lp-EO5I60KA', title: 'Bahebak Ana Acoustic' },
-            { id: 'SlPhMPnQ58k', title: 'Kont Aol Eh Live' },
-            { id: 'nfWlot6h_JM', title: 'Ayesh Ma\'ak Live' },
-            { id: 'e-ORhEE9VVg', title: 'Kol Hayaty Live' },
-            { id: 'hLQl3WQQoQ0', title: 'Gamalo Live' },
-            { id: 'wJnBTPUQS5A', title: 'El Leila Live' },
-            { id: '8UVNT4wvIGY', title: 'Ahla W Ahla Live' },
-            { id: 'H7HmzwI67ec', title: 'El Qahira Live' },
-            { id: '3r7k9l5sG3k', title: 'Bahebak Aktar Live' },
-            { id: 'y6Sxv-sUYtM', title: 'Rohy Maatak Live' },
-            { id: '2-lz1qgwf80', title: 'Wala Ala Balo Live' },
-            { id: 'u9Mv98Gr5pY', title: 'Qusad Einy Live' },
-            { id: 'LsoLEjrDogU', title: 'Da Law Et7asab Live' },
-            { id: '5NV6Rdv1a3I', title: 'Habiby Ya Nour El Ein Live' },
-            { id: 'J_ub7Etch2U', title: 'Ya Habiby Live' }
+            { id: 'F0qQguKVSQY', title: 'الأغنية الأولى' }, // الأغنية الجديدة اللي طلبتها الأول
+            { id: 'iq05BWnXHoI', title: 'هاى معاكو حمو - حمو المرشدى' } // الأغنية التانية
         ];
-        
-        var currentTrackIndex = 0; 
+        var currentTrackIndex = 0; // هنبدأ بالأغنية الأولى في القائمة (رقم 0)
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
                 height: '0', 
                 width: '0', 
-                videoId: playlist[currentTrackIndex].id,
+                videoId: playlist[currentTrackIndex].id, // تحميل أول أغنية
                 playerVars: { 'autoplay': 0, 'controls': 0 },
                 events: {
                     'onReady': onPlayerReady,
@@ -292,20 +151,25 @@
             });
         }
 
+        // دالة لتحميل وعرض الأغنية الجديدة
         function loadTrack(index) {
+            // لو وصلنا للآخر، نرجع للأول، ولو رجعنا قبل الأول، نروح للآخر
             if (index >= playlist.length) index = 0;
             if (index < 0) index = playlist.length - 1;
             
             currentTrackIndex = index;
             var track = playlist[currentTrackIndex];
 
+            // تحديث الواجهة (الاسم والصورة)
             document.getElementById('track-name').innerText = track.title;
             document.getElementById('cover-img').src = "https://img.youtube.com/vi/" + track.id + "/hqdefault.jpg";
             
+            // تصفير العدادات
             document.getElementById('progress-bar').value = 0;
             document.getElementById('current-time').innerText = "0:00";
             document.getElementById('duration').innerText = "0:00";
 
+            // أمر اليوتيوب بتشغيل الفيديو الجديد
             if (player && typeof player.loadVideoById === "function") {
                 player.loadVideoById(track.id);
             }
@@ -315,9 +179,11 @@
             document.querySelectorAll('button').forEach(btn => btn.disabled = false);
             document.getElementById('progress-bar').disabled = false;
 
+            // عرض بيانات أول أغنية في الواجهة
             loadTrack(currentTrackIndex);
-            player.pauseVideo(); 
+            player.pauseVideo(); // التأكد إنها مش هتشتغل تلقائي في البداية
 
+            // أحداث التشغيل والإيقاف
             document.getElementById('play-btn').addEventListener('click', function() {
                 player.playVideo();
                 this.style.display = 'none';
@@ -329,6 +195,7 @@
                 document.getElementById('play-btn').style.display = 'block';
             });
 
+            // أحداث التنقل بين الأغاني (التالي والسابق)
             document.getElementById('next-track-btn').addEventListener('click', function() {
                 loadTrack(currentTrackIndex + 1);
             });
@@ -336,6 +203,7 @@
                 loadTrack(currentTrackIndex - 1);
             });
 
+            // أحداث التقديم والتأخير 10 ثواني
             document.getElementById('forward-btn').addEventListener('click', function() {
                 player.seekTo(player.getCurrentTime() + 10, true);
             });
@@ -343,6 +211,7 @@
                 player.seekTo(player.getCurrentTime() - 10, true);
             });
 
+            // التعامل مع شريط التقدم
             var progressBar = document.getElementById('progress-bar');
             progressBar.addEventListener('mousedown', () => isDragging = true);
             progressBar.addEventListener('touchstart', () => isDragging = true);
@@ -353,55 +222,6 @@
                 isDragging = false;
             });
             progressBar.addEventListener('touchend', () => isDragging = false);
-            
-            // ==========================================
-            // تفعيل ميزة البحث
-            // ==========================================
-            var searchInput = document.getElementById('search-input');
-            var searchResults = document.getElementById('search-results');
-
-            searchInput.addEventListener('input', function() {
-                var query = this.value.toLowerCase();
-                searchResults.innerHTML = ''; // مسح النتائج القديمة
-                
-                if (query === '') return; // لو المربع فاضي متعملش حاجة
-
-                // فلترة المصفوفة عشان نطلع الأغاني اللي فيها الحروف اللي انكتبت
-                var filteredTracks = playlist.filter(function(track) {
-                    return track.title.toLowerCase().includes(query);
-                });
-
-                // عرض النتائج
-                filteredTracks.forEach(function(track) {
-                    var div = document.createElement('div');
-                    div.className = 'result-item';
-                    div.innerText = track.title;
-                    
-                    // لما نضغط على نتيجة من البحث
-                    div.onclick = function() {
-                        // نجيب الـ index الأصلي بتاع الأغنية من المصفوفة الكبيرة
-                        var originalIndex = playlist.findIndex(t => t.id === track.id);
-                        loadTrack(originalIndex);
-                        
-                        // نشغلها تلقائياً ونغير شكل الزراير
-                        player.playVideo();
-                        document.getElementById('play-btn').style.display = 'none';
-                        document.getElementById('pause-btn').style.display = 'block';
-                        
-                        // نقفل قائمة البحث ونفضي المربع
-                        searchInput.value = '';
-                        searchResults.innerHTML = '';
-                    };
-                    searchResults.appendChild(div);
-                });
-            });
-
-            // إخفاء قائمة البحث لو ضغطنا في أي مكان براها
-            document.addEventListener('click', function(e) {
-                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                    searchResults.innerHTML = '';
-                }
-            });
         }
 
         function onPlayerStateChange(event) {
@@ -409,6 +229,7 @@
                 document.getElementById('duration').innerText = formatTime(player.getDuration());
                 timeUpdater = setInterval(updateProgressBar, 500);
                 
+                // التأكد إن زر التوقف هو اللي ظاهر
                 document.getElementById('play-btn').style.display = 'none';
                 document.getElementById('pause-btn').style.display = 'block';
             } else {
@@ -419,6 +240,7 @@
                 }
             }
 
+            // تشغيل الأغنية اللي بعدها تلقائياً لما الحالية تخلص
             if (event.data == YT.PlayerState.ENDED) {
                 loadTrack(currentTrackIndex + 1);
             }

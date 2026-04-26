@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشغل موسيقى مخصص</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .player-card {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 300px;
+        }
+        .track-title {
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .controls button {
+            background-color: #1db954; /* لون قريب من سبوتيفاي */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .controls button:hover {
+            background-color: #1ed760;
+            transform: scale(1.05);
+        }
+        .controls button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        /* إخفاء مشغل يوتيوب الأصلي */
+        #youtube-player {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-card">
+        <div class="track-title" id="track-name">جاري تحميل الأغنية...</div>
+        
+        <div class="controls">
+            <button id="play-btn" disabled>▶ تشغيل</button>
+            <button id="pause-btn" disabled>⏸ إيقاف</button>
+        </div>
+    </div>
+
+    <div id="youtube-player"></div>
+
+    <script>
+        // 1. تحميل الـ API الخاص بيوتيوب بشكل غير متزامن (Asynchronous)
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+
+        // 2. الدالة دي بتشتغل تلقائياً أول ما الـ API يحمل
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '0', 
+                width: '0', 
+                videoId: 'iq05BWnXHoI', // ده الـ ID بتاع أغنية حمو المرشدي
+                playerVars: {
+                    'autoplay': 0, // عدم التشغيل التلقائي
+                    'controls': 0, // إخفاء عناصر التحكم
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // 3. الدالة دي بتشتغل لما المشغل يكون جاهز
+        function onPlayerReady(event) {
+            // تفعيل الزراير
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = false;
+
+            // جلب بيانات الفيديو (ممكن تجيب العنوان الفعلي لو معاك Data API، بس هنا هنكتبه كمثال)
+            document.getElementById('track-name').innerText = "هاى معاكو حمو - حمو المرشدى";
+
+            // ربط زراير الـ HTML بأوامر المشغل
+            document.getElementById('play-btn').addEventListener('click', function() {
+                player.playVideo();
+            });
+
+            document.getElementById('pause-btn').addEventListener('click', function() {
+                player.pauseVideo();
+            });
+        }
+
+        // 4. (اختياري) مراقبة حالة المشغل (شغال، واقف، خلص)
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                console.log("الأغنية شغالة دلوقتي...");
+            } else if (event.data == YT.PlayerState.PAUSED) {
+                console.log("الأغنية وقفت.");
+            }
+        }
+    </script>
+</body>
+</html>
